@@ -1,4 +1,4 @@
-package secretfields
+package gosecretfields
 
 import (
 	"encoding/json"

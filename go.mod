@@ -1,3 +1,3 @@
-module pfcoperez.org/gosecretfields
+module github.com/pfcoperez/gosecretfields
 
 go 1.18
