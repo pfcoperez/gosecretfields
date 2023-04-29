@@ -5,10 +5,6 @@ import (
 	"fmt"
 )
 
-// Global settings
-
-var RedactSecretsInJSON bool = true
-
 // Types
 
 // Container for values tagged as secrets
@@ -17,12 +13,16 @@ type Secret[T any] struct {
 	// converted into a string through the provided stringer interface
 	// for the container.
 	// Wether or not it is redacted when serializing to JSON is determined
-	// by `RedactSecretsInJSON` global flag.
+	// by `CleartextJSON` attribute.
 	// It can be explicitly accesed through this public attribute.
 	SecretValue T
 
 	// This is the value that replaces the secret value upon redaction.
 	redactedValue T
+
+	// Flag controling wether this secret should be JSON serialized with
+	// its secret or redacted value.
+	CleartextJSON bool
 }
 
 // Factories
@@ -39,17 +39,18 @@ func AsSecret[T any](value T, redactedValue ...T) Secret[T] {
 	return Secret[T]{
 		SecretValue:   value,
 		redactedValue: redacted,
+		CleartextJSON: false,
 	}
 }
 
 // JSON serdes
 
 func (s Secret[T]) MarshalJSON() ([]byte, error) {
-	// Depending on the value of `RedactSecretsInJSON` flags, JSON serialization of
+	// Depending on the value of `s.CleartextJSON` flag, JSON serialization of
 	// Secret fields will result on the redactedValue or the actual secret value JSON representation
 	// but the container will never show in the JSON structure.
 	safeValue := s.redactedValue
-	if !RedactSecretsInJSON {
+	if s.CleartextJSON {
 		safeValue = s.SecretValue
 	}
 	return json.Marshal(safeValue)

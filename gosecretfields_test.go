@@ -107,7 +107,14 @@ func TestMarshallingAndStringer(t *testing.T) {
 				t.Errorf("Stringer interface implementation must prevent secrets from leaking:\n%s", asString)
 			}
 
-			RedactSecretsInJSON = testCase.redactJson
+			testCase.value.Name.CleartextJSON = !testCase.redactJson
+			testCase.value.Age.CleartextJSON = !testCase.redactJson
+
+			if maybeFriend := testCase.value.Friend; maybeFriend != nil {
+				maybeFriend.Name.CleartextJSON = !testCase.redactJson
+				maybeFriend.Age.CleartextJSON = !testCase.redactJson
+			}
+
 			var unmarshalled character
 
 			marshalled, _ := json.Marshal(testCase.value)
@@ -121,6 +128,14 @@ func TestMarshallingAndStringer(t *testing.T) {
 
 			if unmarshallingError != nil {
 				t.Errorf("Unmarshalling should not fail. Error: %s", unmarshallingError)
+			}
+
+			unmarshalled.Name.CleartextJSON = !testCase.redactJson
+			unmarshalled.Age.CleartextJSON = !testCase.redactJson
+
+			if maybeUnmarshalledFriend := unmarshalled.Friend; maybeUnmarshalledFriend != nil {
+				maybeUnmarshalledFriend.Name.CleartextJSON = !testCase.redactJson
+				maybeUnmarshalledFriend.Age.CleartextJSON = !testCase.redactJson
 			}
 
 			if !testCase.redactJson && !reflect.DeepEqual(unmarshalled, testCase.value) {
