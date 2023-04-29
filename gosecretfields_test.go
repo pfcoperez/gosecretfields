@@ -63,7 +63,7 @@ var sampleCharacterHiro = character{
 
 var sampleCharacterYT = character{
 	Name: AsSecret("YT"),
-	Age:  AsSecret(25),
+	Age:  AsSecret(15),
 }
 
 func containsSecrets(text string) bool {
