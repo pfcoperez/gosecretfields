@@ -72,4 +72,4 @@ snowCrash.Characters[1].Age.CleartextJSON = true
 
 marshalledSomeSecrets, _ := json.Marshal(snowCrash)
 fmt.Println(string(marshalledSomeSecrets))
-``
+```
