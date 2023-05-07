@@ -20,9 +20,70 @@ type Secret[T any] struct {
 	// This is the value that replaces the secret value upon redaction.
 	redactedValue T
 
+	// Flag toggling redaction on and off for different kinds of serialization
+	// so far, only JSON serdes is configurable.
+	// By assigning references to the same value implementing the `Settings` interface,
+	// we are able to control a group of `Secret` instances serdes behaviour at the same time.
+	Settings Settings
+}
+
+// Common interface for per-secret instance settings.
+type Settings interface {
 	// Flag controling wether this secret should be JSON serialized with
 	// its secret or redacted value.
-	CleartextJSON bool
+	CleartextJSON() bool
+}
+
+// Implementation of the `Settings` interface that close down
+// changes after initialization.
+type ImmutableSettings struct {
+	enabledClearTextJSON bool
+}
+
+func NewImmutableSettings(enabledClearTextJSON bool) ImmutableSettings {
+	return ImmutableSettings{enabledClearTextJSON}
+}
+
+func (is ImmutableSettings) CleartextJSON() bool {
+	return is.enabledClearTextJSON
+}
+
+func (is *ImmutableSettings) CopyAsMutableSettings() MutableSettings {
+	return MutableSettings{
+		EnabledClearTextJSON: is.CleartextJSON(),
+	}
+}
+
+// Implementation of the `Settings` interface allowing for in place
+// mutation.
+type MutableSettings struct {
+	EnabledClearTextJSON bool
+}
+
+func (ms *MutableSettings) CleartextJSON() bool {
+	return ms.EnabledClearTextJSON
+}
+
+func (ms *MutableSettings) Copy() MutableSettings {
+	return MutableSettings{
+		EnabledClearTextJSON: ms.CleartextJSON(),
+	}
+}
+
+func (ms *MutableSettings) CopyAsImmutable() ImmutableSettings {
+	return ImmutableSettings{
+		enabledClearTextJSON: ms.CleartextJSON(),
+	}
+}
+
+// Shared static values
+
+var defaultSettings = ImmutableSettings{
+	enabledClearTextJSON: false,
+}
+
+func DefaultSettings() Settings {
+	return &defaultSettings
 }
 
 // Factories
@@ -39,7 +100,7 @@ func AsSecret[T any](value T, redactedValue ...T) Secret[T] {
 	return Secret[T]{
 		SecretValue:   value,
 		redactedValue: redacted,
-		CleartextJSON: false,
+		Settings:      DefaultSettings(),
 	}
 }
 
@@ -50,7 +111,7 @@ func (s Secret[T]) MarshalJSON() ([]byte, error) {
 	// Secret fields will result on the redactedValue or the actual secret value JSON representation
 	// but the container will never show in the JSON structure.
 	safeValue := s.redactedValue
-	if s.CleartextJSON {
+	if s.Settings.CleartextJSON() {
 		safeValue = s.SecretValue
 	}
 	return json.Marshal(safeValue)

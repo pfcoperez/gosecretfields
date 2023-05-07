@@ -24,7 +24,7 @@ func TestAsSecret(t *testing.T) {
 				value:         "Hiro Protagonist",
 				redactedValue: []string{},
 			},
-			want: Secret[string]{SecretValue: "Hiro Protagonist", redactedValue: ""},
+			want: Secret[string]{SecretValue: "Hiro Protagonist", redactedValue: "", Settings: DefaultSettings()},
 		},
 		{
 			name: "With explicit redacted value",
@@ -32,7 +32,7 @@ func TestAsSecret(t *testing.T) {
 				value:         "Hiro Protagonist",
 				redactedValue: []string{"REDACTED"},
 			},
-			want: Secret[string]{SecretValue: "Hiro Protagonist", redactedValue: "REDACTED"},
+			want: Secret[string]{SecretValue: "Hiro Protagonist", redactedValue: "REDACTED", Settings: DefaultSettings()},
 		},
 	}
 	for _, tt := range tests {
@@ -75,6 +75,15 @@ func containsSecrets(text string) bool {
 
 func TestMarshallingAndStringer(t *testing.T) {
 
+	commonSettings := &MutableSettings{
+		EnabledClearTextJSON: true,
+	}
+
+	sampleCharacterHiro.Age.Settings = commonSettings
+	sampleCharacterHiro.Name.Settings = commonSettings
+	sampleCharacterYT.Age.Settings = commonSettings
+	sampleCharacterYT.Name.Settings = commonSettings
+
 	hiroWithFriend := sampleCharacterHiro
 	hiroWithFriend.Friend = &sampleCharacterYT
 
@@ -107,13 +116,7 @@ func TestMarshallingAndStringer(t *testing.T) {
 				t.Errorf("Stringer interface implementation must prevent secrets from leaking:\n%s", asString)
 			}
 
-			testCase.value.Name.CleartextJSON = !testCase.redactJson
-			testCase.value.Age.CleartextJSON = !testCase.redactJson
-
-			if maybeFriend := testCase.value.Friend; maybeFriend != nil {
-				maybeFriend.Name.CleartextJSON = !testCase.redactJson
-				maybeFriend.Age.CleartextJSON = !testCase.redactJson
-			}
+			commonSettings.EnabledClearTextJSON = !testCase.redactJson
 
 			var unmarshalled character
 
@@ -130,12 +133,12 @@ func TestMarshallingAndStringer(t *testing.T) {
 				t.Errorf("Unmarshalling should not fail. Error: %s", unmarshallingError)
 			}
 
-			unmarshalled.Name.CleartextJSON = !testCase.redactJson
-			unmarshalled.Age.CleartextJSON = !testCase.redactJson
+			unmarshalled.Name.Settings = commonSettings
+			unmarshalled.Age.Settings = commonSettings
 
 			if maybeUnmarshalledFriend := unmarshalled.Friend; maybeUnmarshalledFriend != nil {
-				maybeUnmarshalledFriend.Name.CleartextJSON = !testCase.redactJson
-				maybeUnmarshalledFriend.Age.CleartextJSON = !testCase.redactJson
+				maybeUnmarshalledFriend.Name.Settings = commonSettings
+				maybeUnmarshalledFriend.Age.Settings = commonSettings
 			}
 
 			if !testCase.redactJson && !reflect.DeepEqual(unmarshalled, testCase.value) {
