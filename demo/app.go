@@ -48,8 +48,10 @@ func main() {
 	fmt.Println(string(marshalledAllSecrets))
 
 	// But we can set some fields open for JSON serialization
-	snowCrash.Characters[1].Name.CleartextJSON = true
-	snowCrash.Characters[1].Age.CleartextJSON = true
+	changedSettings := NewImmutableSettings(true)
+
+	snowCrash.Characters[1].Name.Settings = changedSettings
+	snowCrash.Characters[1].Age.Settings = changedSettings
 
 	marshalledSomeSecrets, _ := json.Marshal(snowCrash)
 	fmt.Println(string(marshalledSomeSecrets))
