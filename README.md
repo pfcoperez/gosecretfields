@@ -27,4 +27,4 @@ But the redacted value can be anything the developer wants: From default values 
 
 ## Usage example
 
-https://github.com/pfcoperez/gosecretfields/blob/f7bc50b57c4eb1d367946f2947e6eeb6436b7349/demo/app.go#L1-L56
+https://github.com/pfcoperez/gosecretfields/blob/b619b0946d6bec1a41afed037ab3107800d600a6/demo/app.go#L10-L58
