@@ -28,3 +28,12 @@ But the redacted value can be anything the developer wants: From default values 
 ## Usage example
 
 https://github.com/pfcoperez/gosecretfields/blob/b619b0946d6bec1a41afed037ab3107800d600a6/demo/app.go#L10-L58
+
+Whose execution yields the following output:
+
+```
+{ 0 <nil>}
+30
+{"Tittle":"Snow Crash","Author":"Neal Stephenson","Characters":[{"Name":"","Age":0,"Friend":null},{"Name":"","Age":0,"Friend":null}]}
+{"Tittle":"Snow Crash","Author":"Neal Stephenson","Characters":[{"Name":"","Age":0,"Friend":null},{"Name":"YT","Age":15,"Friend":null}]}
+```
